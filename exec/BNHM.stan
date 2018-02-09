@@ -4,10 +4,10 @@
 
 data {
   int<lower=1> N;                           // num studies
-  int<lower=0> rc[N];                       // num events, treatment
-  int<lower=1> nc[N];                       // num patients, treatment
-  int<lower=0> rt[N];                       // num events, control
-  int<lower=1> nt[N];                       // num patients, control
+  int<lower=0> rc[N];                    // num events, control
+  int<lower=1> nc[N];                    // num patients, control
+  int<lower=0> rt[N];                     // num events, treatment
+  int<lower=1> nt[N];                     // num patients, treatment
 }
 
 parameters {

@@ -2,16 +2,35 @@
 % Please edit documentation in R/meta_stan.R
 \name{meta_stan}
 \alias{meta_stan}
-\title{Bayesian meta-analysis with Stan}
+\title{Fitting a meta-analysis model using Stan}
 \usage{
-meta_stan(stanDat)
+meta_stan(nt, nc, rt, rc)
 }
 \arguments{
-\item{stanDat}{Data}
+\item{ntrt}{Number of subjects in treatment arm}
+
+\item{nctrl}{Number of subjects in control arm}
+
+\item{rtrt}{Number of events in treatment arm}
+
+\item{rctrl}{Number of events in contrl arm}
 }
 \value{
 an object of class `stanfit` returned by `rstan::sampling`
 }
 \description{
-Bayesian meta-analysis with Stan
+\code{meta_stan} fits a meta-analysis model using Stan.
+}
+\examples{
+\dontrun{
+data('dat.Crins2014', package = "MetaStan")
+## Subset of dataset where PTLD outcomes available
+dat.Crins2014.PTLD = subset(dat.Crins2014, is.na(exp.PTLD.events) == FALSE)
+## Fitting a Binomial-Normal Hierarchial model
+bnhm.vague.PTLD.stan  <- meta_stan(nt = dat.Crins2014.PTLD$exp.total, 
+                                   nc = dat.Crins2014.PTLD$cont.total, 
+                                   rt = dat.Crins2014.PTLD$exp.PTLD.events,
+                                   rc = dat.Crins2014.PTLD$cont.PTLD.events)
+}
+
 }
