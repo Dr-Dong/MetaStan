@@ -4,16 +4,44 @@
 \alias{meta_stan}
 \title{Fitting a meta-analysis model using Stan}
 \usage{
-meta_stan(nt, nc, rt, rc)
+meta_stan(nt, nc, rt, rc, mu_par = c(0, 10), theta_par = NULL,
+  tau_par = c(0, 1), OR_apriori = NULL, iter = 4000, warmup = 2000,
+  chains = 4)
 }
 \arguments{
-\item{ntrt}{Number of subjects in treatment arm}
+\item{nt}{Number of subjects in treatment arm}
 
-\item{nctrl}{Number of subjects in control arm}
+\item{nc}{Number of subjects in control arm}
 
-\item{rtrt}{Number of events in treatment arm}
+\item{rt}{Number of events in treatment arm}
 
-\item{rctrl}{Number of events in contrl arm}
+\item{rc}{Number of events in control arm}
+
+\item{mu_par}{A numerical vector specifying the parameter of the normal prior
+density for baseline risks, first value is parameter for mean (default 0), 
+second is for standard deviation (default 10).}
+
+\item{theta_par}{A numerical vector specifying the parameter of the normal prior
+density for mean treatmen effect, first value is parameter for mean(default 0), 
+second is for standard deviation (default 2.81).}
+
+\item{tau_par}{A numerical vector specifying the parameter of the half normal prior
+density for heterogenety stdev, first value is parameter for mean (default 0), 
+second is for standard deviation (default 1).}
+
+\item{OR_apriori}{A numerical value used to calculate the standard deviation of
+the nomral prior for treatment effect parameter. 95% prior interval of the underlying 
+odds ratio lies between 1/\code{OR_apriori} and OR_apriori. Default is NULL.
+When used, \code{theta_par} should not be specified.}
+
+\item{iter}{A positive integer specifying the number of iterations for 
+each chain (including warmup). The default is 4000.}
+
+\item{warmup}{A positive integer specifying the number of warmup (aka burnin) 
+iterations per chain. The default is 2000.}
+
+\item{chains}{A positive integer specifying the number of Markov chains. 
+The default is 4.}
 }
 \value{
 an object of class `stanfit` returned by `rstan::sampling`
@@ -26,11 +54,14 @@ an object of class `stanfit` returned by `rstan::sampling`
 data('dat.Crins2014', package = "MetaStan")
 ## Subset of dataset where PTLD outcomes available
 dat.Crins2014.PTLD = subset(dat.Crins2014, is.na(exp.PTLD.events) == FALSE)
-## Fitting a Binomial-Normal Hierarchial model
+## Fitting a Binomial-Normal Hierarchial model using WIP priors
 bnhm.vague.PTLD.stan  <- meta_stan(nt = dat.Crins2014.PTLD$exp.total, 
                                    nc = dat.Crins2014.PTLD$cont.total, 
                                    rt = dat.Crins2014.PTLD$exp.PTLD.events,
-                                   rc = dat.Crins2014.PTLD$cont.PTLD.events)
+                                   rc = dat.Crins2014.PTLD$cont.PTLD.events, 
+                                   mu_par = c(0, 10),
+                                   theta_par = c(0, 2.81), 
+                                   tau_par = c(0, 1))
 }
 
 }
