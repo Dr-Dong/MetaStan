@@ -4,16 +4,16 @@
 \alias{convert_data_arm}
 \title{Convert contrast-based dataset to arm-based dataset}
 \usage{
-convert_data_arm(ntrt, nctrl, ptrt, pctrl)
+convert_data_arm(nt, nc, pt, pc)
 }
 \arguments{
-\item{ntrt}{Number of subjects in treatment arm}
+\item{nt}{Number of subjects in treatment arm}
 
-\item{nctrl}{Number of subjects in control arm}
+\item{nc}{Number of subjects in control arm}
 
-\item{ptrt}{Number of events in treatment arm}
+\item{pt}{Number of events in treatment arm}
 
-\item{pctrl}{Number of events in treatment arm}
+\item{pc}{Number of events in treatment arm}
 }
 \value{
 A dataframe object

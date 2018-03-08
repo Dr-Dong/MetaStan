@@ -7,7 +7,7 @@ RCPP_MODULE(stan_fit4BNHM_mod) {
 
     class_<rstan::stan_fit<model_BNHM_namespace::model_BNHM, boost::random::ecuyer1988> >("model_BNHM")
 
-    .constructor<SEXP,SEXP>()
+    .constructor<SEXP,SEXP,SEXP>()
 
 
     .method("call_sampler", &rstan::stan_fit<model_BNHM_namespace::model_BNHM, boost::random::ecuyer1988> ::call_sampler)

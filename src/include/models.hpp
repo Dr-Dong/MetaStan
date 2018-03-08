@@ -1,4 +1,12 @@
-
+/*
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #ifndef MODELS_HPP
 #define MODELS_HPP
 #define STAN__SERVICES__COMMAND_HPP
@@ -27,7 +35,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_BNHM");
-    reader.add_event(40, 40, "end", "model_BNHM");
+    reader.add_event(43, 43, "end", "model_BNHM");
     return reader;
 }
 
@@ -38,6 +46,9 @@ private:
     vector<int> nc;
     vector<int> rt;
     vector<int> nt;
+    vector_d mu_par;
+    vector_d theta_par;
+    vector_d tau_par;
 public:
     model_BNHM(stan::io::var_context& context__,
         std::ostream* pstream__ = 0)
@@ -117,6 +128,36 @@ public:
             for (size_t i_0__ = 0; i_0__ < nt_limit_0__; ++i_0__) {
                 nt[i_0__] = vals_i__[pos__++];
             }
+            validate_non_negative_index("mu_par", "2", 2);
+            context__.validate_dims("data initialization", "mu_par", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("mu_par", "2", 2);
+            mu_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("mu_par");
+            pos__ = 0;
+            size_t mu_par_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < mu_par_i_vec_lim__; ++i_vec__) {
+                mu_par[i_vec__] = vals_r__[pos__++];
+            }
+            validate_non_negative_index("theta_par", "2", 2);
+            context__.validate_dims("data initialization", "theta_par", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("theta_par", "2", 2);
+            theta_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("theta_par");
+            pos__ = 0;
+            size_t theta_par_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < theta_par_i_vec_lim__; ++i_vec__) {
+                theta_par[i_vec__] = vals_r__[pos__++];
+            }
+            validate_non_negative_index("tau_par", "2", 2);
+            context__.validate_dims("data initialization", "tau_par", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("tau_par", "2", 2);
+            tau_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("tau_par");
+            pos__ = 0;
+            size_t tau_par_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < tau_par_i_vec_lim__; ++i_vec__) {
+                tau_par[i_vec__] = vals_r__[pos__++];
+            }
 
             // validate, data variables
             check_greater_or_equal(function__,"N",N,1);
@@ -181,17 +222,17 @@ public:
             throw std::runtime_error(std::string("Error transforming variable mu: ") + e.what());
         }
 
-        if (!(context__.contains_r("d")))
-            throw std::runtime_error("variable d missing");
-        vals_r__ = context__.vals_r("d");
+        if (!(context__.contains_r("theta")))
+            throw std::runtime_error("variable theta missing");
+        vals_r__ = context__.vals_r("theta");
         pos__ = 0U;
-        context__.validate_dims("initialization", "d", "double", context__.to_vec());
-        double d(0);
-        d = vals_r__[pos__++];
+        context__.validate_dims("initialization", "theta", "double", context__.to_vec());
+        double theta(0);
+        theta = vals_r__[pos__++];
         try {
-            writer__.scalar_unconstrain(d);
+            writer__.scalar_unconstrain(theta);
         } catch (const std::exception& e) { 
-            throw std::runtime_error(std::string("Error transforming variable d: ") + e.what());
+            throw std::runtime_error(std::string("Error transforming variable theta: ") + e.what());
         }
 
         if (!(context__.contains_r("zeta")))
@@ -260,12 +301,12 @@ public:
             else
                 mu = in__.vector_constrain(N);
 
-            T__ d;
-            (void) d;  // dummy to suppress unused var warning
+            T__ theta;
+            (void) theta;  // dummy to suppress unused var warning
             if (jacobian__)
-                d = in__.scalar_constrain(lp__);
+                theta = in__.scalar_constrain(lp__);
             else
-                d = in__.scalar_constrain();
+                theta = in__.scalar_constrain();
 
             Eigen::Matrix<T__,Eigen::Dynamic,1>  zeta;
             (void) zeta;  // dummy to suppress unused var warning
@@ -296,7 +337,7 @@ public:
             for (int i = 1; i <= N; ++i) {
 
                 stan::math::assign(get_base1_lhs(pc,i,"pc",1), inv_logit(get_base1(mu,i,"mu",1)));
-                stan::math::assign(get_base1_lhs(pt,i,"pt",1), inv_logit(((get_base1(mu,i,"mu",1) + d) + (get_base1(zeta,i,"zeta",1) * tau))));
+                stan::math::assign(get_base1_lhs(pt,i,"pt",1), inv_logit(((get_base1(mu,i,"mu",1) + theta) + (get_base1(zeta,i,"zeta",1) * tau))));
             }
 
             // validate transformed parameters
@@ -321,11 +362,11 @@ public:
             // model body
 
             lp_accum__.add(normal_log<propto__>(zeta, 0, 1));
-            lp_accum__.add(normal_log<propto__>(mu, 0, 100));
-            lp_accum__.add(normal_log<propto__>(d, 0, 100));
-            lp_accum__.add(normal_log<propto__>(tau, 0, 1));
+            lp_accum__.add(normal_log<propto__>(mu, get_base1(mu_par,1,"mu_par",1), get_base1(mu_par,2,"mu_par",1)));
+            lp_accum__.add(normal_log<propto__>(theta, get_base1(theta_par,1,"theta_par",1), get_base1(theta_par,2,"theta_par",1)));
+            lp_accum__.add(normal_log<propto__>(tau, get_base1(tau_par,1,"tau_par",1), get_base1(tau_par,2,"tau_par",1)));
             if (tau < 0) lp_accum__.add(-std::numeric_limits<double>::infinity());
-            else lp_accum__.add(-normal_ccdf_log(0, 0, 1));
+            else lp_accum__.add(-normal_ccdf_log(0, get_base1(tau_par,1,"tau_par",1), get_base1(tau_par,2,"tau_par",1)));
             lp_accum__.add(binomial_log<propto__>(rc, nc, pc));
             lp_accum__.add(binomial_log<propto__>(rt, nt, pt));
 
@@ -355,7 +396,7 @@ public:
     void get_param_names(std::vector<std::string>& names__) const {
         names__.resize(0);
         names__.push_back("mu");
-        names__.push_back("d");
+        names__.push_back("theta");
         names__.push_back("zeta");
         names__.push_back("tau");
         names__.push_back("pc");
@@ -398,13 +439,13 @@ public:
         (void) function__;  // dummy to suppress unused var warning
         // read-transform, write parameters
         vector_d mu = in__.vector_constrain(N);
-        double d = in__.scalar_constrain();
+        double theta = in__.scalar_constrain();
         vector_d zeta = in__.vector_constrain(N);
         double tau = in__.scalar_lb_constrain(0);
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(mu[k_0__]);
             }
-        vars__.push_back(d);
+        vars__.push_back(theta);
             for (int k_0__ = 0; k_0__ < N; ++k_0__) {
             vars__.push_back(zeta[k_0__]);
             }
@@ -433,7 +474,7 @@ public:
             for (int i = 1; i <= N; ++i) {
 
                 stan::math::assign(get_base1_lhs(pc,i,"pc",1), inv_logit(get_base1(mu,i,"mu",1)));
-                stan::math::assign(get_base1_lhs(pt,i,"pt",1), inv_logit(((get_base1(mu,i,"mu",1) + d) + (get_base1(zeta,i,"zeta",1) * tau))));
+                stan::math::assign(get_base1_lhs(pt,i,"pt",1), inv_logit(((get_base1(mu,i,"mu",1) + theta) + (get_base1(zeta,i,"zeta",1) * tau))));
             }
 
             // validate transformed parameters
@@ -494,7 +535,7 @@ public:
             param_names__.push_back(param_name_stream__.str());
         }
         param_name_stream__.str(std::string());
-        param_name_stream__ << "d";
+        param_name_stream__ << "theta";
         param_names__.push_back(param_name_stream__.str());
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
             param_name_stream__.str(std::string());
@@ -531,7 +572,7 @@ public:
             param_names__.push_back(param_name_stream__.str());
         }
         param_name_stream__.str(std::string());
-        param_name_stream__ << "d";
+        param_name_stream__ << "theta";
         param_names__.push_back(param_name_stream__.str());
         for (int k_0__ = 1; k_0__ <= N; ++k_0__) {
             param_name_stream__.str(std::string());
