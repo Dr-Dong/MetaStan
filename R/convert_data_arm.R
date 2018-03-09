@@ -5,10 +5,10 @@
 #'
 #'
 #'
-#' @param ntrt Number of subjects in treatment arm
-#' @param nctrl Number of subjects in control arm
-#' @param ptrt Number of events in treatment arm
-#' @param pctrl Number of events in treatment arm
+#' @param nt Number of subjects in treatment arm
+#' @param nc Number of subjects in control arm
+#' @param pt Number of events in treatment arm
+#' @param pc Number of events in treatment arm
 #' @return A dataframe object
 #' @examples
 #' data('dat.Crins2014', package = "MetaStan")
@@ -19,16 +19,16 @@
 #' dat.Crins2014.PTLD$cont.total,
 #' dat.Crins2014.PTLD$exp.PTLD.events, dat.Crins2014.PTLD$cont.PTLD.events)
 #' @export
-convert_data_arm <- function(ntrt, nctrl, ptrt, pctrl) {
+convert_data_arm <- function(nt, nc, pt, pc) {
     data <- NULL
-    data$ptrt <- ptrt
-    data$ntrt <- ntrt
-    data$pctrl <- pctrl
-    data$nctrl <- nctrl
+    data$pt <- pt
+    data$nt <- nt
+    data$pc <- pc
+    data$nc <- nc
     data <- data.frame(data)
     N <- nrow(data)
-    Y <- as.vector(rbind(data$pctrl, data$ptrt))  # number of events
-    sampleSize <- as.vector(rbind(data$nctrl, data$ntrt))  # number of all patients
+    Y <- as.vector(rbind(data$pc, data$pt))  # number of events
+    sampleSize <- as.vector(rbind(data$nc, data$nt))  # number of all patients
     d <- rep(0:1, times = N)
     het <- as.vector(rbind(rep(NA, times = N), 1:N))  # ID for random effects
     # Dataset for arm-level meta-analysis

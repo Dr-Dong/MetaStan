@@ -35,7 +35,7 @@ static int current_statement_begin__;
 stan::io::program_reader prog_reader__() {
     stan::io::program_reader reader;
     reader.add_event(0, 0, "start", "model_BNHM");
-    reader.add_event(43, 43, "end", "model_BNHM");
+    reader.add_event(77, 77, "end", "model_BNHM");
     return reader;
 }
 
@@ -46,9 +46,10 @@ private:
     vector<int> nc;
     vector<int> rt;
     vector<int> nt;
-    vector_d mu_par;
-    vector_d theta_par;
-    vector_d tau_par;
+    vector_d mu_prior;
+    vector_d theta_prior;
+    vector_d tau_prior;
+    int tau_prior_dist;
 public:
     model_BNHM(stan::io::var_context& context__,
         std::ostream* pstream__ = 0)
@@ -128,36 +129,41 @@ public:
             for (size_t i_0__ = 0; i_0__ < nt_limit_0__; ++i_0__) {
                 nt[i_0__] = vals_i__[pos__++];
             }
-            validate_non_negative_index("mu_par", "2", 2);
-            context__.validate_dims("data initialization", "mu_par", "vector_d", context__.to_vec(2));
-            validate_non_negative_index("mu_par", "2", 2);
-            mu_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
-            vals_r__ = context__.vals_r("mu_par");
+            validate_non_negative_index("mu_prior", "2", 2);
+            context__.validate_dims("data initialization", "mu_prior", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("mu_prior", "2", 2);
+            mu_prior = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("mu_prior");
             pos__ = 0;
-            size_t mu_par_i_vec_lim__ = 2;
-            for (size_t i_vec__ = 0; i_vec__ < mu_par_i_vec_lim__; ++i_vec__) {
-                mu_par[i_vec__] = vals_r__[pos__++];
+            size_t mu_prior_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < mu_prior_i_vec_lim__; ++i_vec__) {
+                mu_prior[i_vec__] = vals_r__[pos__++];
             }
-            validate_non_negative_index("theta_par", "2", 2);
-            context__.validate_dims("data initialization", "theta_par", "vector_d", context__.to_vec(2));
-            validate_non_negative_index("theta_par", "2", 2);
-            theta_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
-            vals_r__ = context__.vals_r("theta_par");
+            validate_non_negative_index("theta_prior", "2", 2);
+            context__.validate_dims("data initialization", "theta_prior", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("theta_prior", "2", 2);
+            theta_prior = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("theta_prior");
             pos__ = 0;
-            size_t theta_par_i_vec_lim__ = 2;
-            for (size_t i_vec__ = 0; i_vec__ < theta_par_i_vec_lim__; ++i_vec__) {
-                theta_par[i_vec__] = vals_r__[pos__++];
+            size_t theta_prior_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < theta_prior_i_vec_lim__; ++i_vec__) {
+                theta_prior[i_vec__] = vals_r__[pos__++];
             }
-            validate_non_negative_index("tau_par", "2", 2);
-            context__.validate_dims("data initialization", "tau_par", "vector_d", context__.to_vec(2));
-            validate_non_negative_index("tau_par", "2", 2);
-            tau_par = vector_d(static_cast<Eigen::VectorXd::Index>(2));
-            vals_r__ = context__.vals_r("tau_par");
+            validate_non_negative_index("tau_prior", "2", 2);
+            context__.validate_dims("data initialization", "tau_prior", "vector_d", context__.to_vec(2));
+            validate_non_negative_index("tau_prior", "2", 2);
+            tau_prior = vector_d(static_cast<Eigen::VectorXd::Index>(2));
+            vals_r__ = context__.vals_r("tau_prior");
             pos__ = 0;
-            size_t tau_par_i_vec_lim__ = 2;
-            for (size_t i_vec__ = 0; i_vec__ < tau_par_i_vec_lim__; ++i_vec__) {
-                tau_par[i_vec__] = vals_r__[pos__++];
+            size_t tau_prior_i_vec_lim__ = 2;
+            for (size_t i_vec__ = 0; i_vec__ < tau_prior_i_vec_lim__; ++i_vec__) {
+                tau_prior[i_vec__] = vals_r__[pos__++];
             }
+            context__.validate_dims("data initialization", "tau_prior_dist", "int", context__.to_vec());
+            tau_prior_dist = int(0);
+            vals_i__ = context__.vals_i("tau_prior_dist");
+            pos__ = 0;
+            tau_prior_dist = vals_i__[pos__++];
 
             // validate, data variables
             check_greater_or_equal(function__,"N",N,1);
@@ -173,8 +179,58 @@ public:
             for (int k0__ = 0; k0__ < N; ++k0__) {
                 check_greater_or_equal(function__,"nt[k0__]",nt[k0__],1);
             }
+            check_greater_or_equal(function__,"tau_prior_dist",tau_prior_dist,0);
+            check_less_or_equal(function__,"tau_prior_dist",tau_prior_dist,7);
             // initialize data variables
 
+            if (as_bool(logical_eq(tau_prior_dist,0))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    HalfNormal");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,1))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    TruncNormal");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,2))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    Uniform");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,3))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    Gamma");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,4))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    InvGamma");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,5))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    LogNormal");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,6))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    TruncCauchy");
+                    *pstream__ << std::endl;
+                }
+            }
+            if (as_bool(logical_eq(tau_prior_dist,7))) {
+                if (pstream__) {
+                    stan_print(pstream__,"tau distrib.:    Exponential");
+                    *pstream__ << std::endl;
+                }
+            }
 
             // validate transformed data
 
@@ -362,11 +418,34 @@ public:
             // model body
 
             lp_accum__.add(normal_log<propto__>(zeta, 0, 1));
-            lp_accum__.add(normal_log<propto__>(mu, get_base1(mu_par,1,"mu_par",1), get_base1(mu_par,2,"mu_par",1)));
-            lp_accum__.add(normal_log<propto__>(theta, get_base1(theta_par,1,"theta_par",1), get_base1(theta_par,2,"theta_par",1)));
-            lp_accum__.add(normal_log<propto__>(tau, get_base1(tau_par,1,"tau_par",1), get_base1(tau_par,2,"tau_par",1)));
-            if (tau < 0) lp_accum__.add(-std::numeric_limits<double>::infinity());
-            else lp_accum__.add(-normal_ccdf_log(0, get_base1(tau_par,1,"tau_par",1), get_base1(tau_par,2,"tau_par",1)));
+            lp_accum__.add(normal_log<propto__>(mu, get_base1(mu_prior,1,"mu_prior",1), get_base1(mu_prior,2,"mu_prior",1)));
+            lp_accum__.add(normal_log<propto__>(theta, get_base1(theta_prior,1,"theta_prior",1), get_base1(theta_prior,2,"theta_prior",1)));
+            if (as_bool(logical_eq(tau_prior_dist,0))) {
+                lp_accum__.add(normal_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,1))) {
+                lp_accum__.add(normal_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+                if (tau < 0) lp_accum__.add(-std::numeric_limits<double>::infinity());
+                else lp_accum__.add(-normal_ccdf_log(0, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,2))) {
+                lp_accum__.add(uniform_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,3))) {
+                lp_accum__.add(gamma_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,4))) {
+                lp_accum__.add(inv_gamma_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,5))) {
+                lp_accum__.add(lognormal_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,6))) {
+                lp_accum__.add(cauchy_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1), get_base1(tau_prior,2,"tau_prior",1)));
+            }
+            if (as_bool(logical_eq(tau_prior_dist,7))) {
+                lp_accum__.add(exponential_log<propto__>(tau, get_base1(tau_prior,1,"tau_prior",1)));
+            }
             lp_accum__.add(binomial_log<propto__>(rc, nc, pc));
             lp_accum__.add(binomial_log<propto__>(rt, nt, pt));
 

@@ -5,7 +5,7 @@ date: "March 7, 2018"
 output: html_document
 ---
 
-- Ironically, the cleanup (or cleanup.win on Windows) script — which is executed if you do R CMD build or R CMD INSTALL --preclean — calls tools/make_cpp, which creates src/include/models.hpp.
+- Tthe cleanup (or cleanup.win on Windows) script — which is executed if you do R CMD build or R CMD INSTALL --preclean — calls tools/make_cpp, which creates src/include/models.hpp.
 
 - Do not mess with make.cpp.R fle!
 

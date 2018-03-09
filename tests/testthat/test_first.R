@@ -11,9 +11,10 @@ test_that("Results are correct for fitting binomial normal hierarchical model us
                               nc = dat.Berkey1995$nc, 
                               rt = dat.Berkey1995$rt,
                               rc = dat.Berkey1995$rc, 
-                              mu_par = c(0, 10),
-                              theta_par = c(0, 2.81), 
-                              tau_par = c(0, 1))
+                              mu_prior = c(0, 10),
+                              theta_prior = c(0, 2.81), 
+                              tau_prior = c(0, 1),
+                              tau_prior_dist = 1)
   ### compare with results
   res1 = round(bnhm.wip.stan$theta[2], 2) - -0.76
   expect_true(all(res1 < 0.2))

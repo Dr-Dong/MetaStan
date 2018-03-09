@@ -6,19 +6,23 @@
 #' @param nc Number of subjects in control arm
 #' @param rt Number of events in treatment arm
 #' @param rc Number of events in control arm
-#' @param mu_par A numerical vector specifying the parameter of the normal prior
+#' @param mu_prior A numerical vector specifying the parameter of the normal prior
 #' density for baseline risks, first value is parameter for mean (default 0), 
 #' second is for standard deviation (default 10).
-#' @param theta_par A numerical vector specifying the parameter of the normal prior
+#' @param theta_prior A numerical vector specifying the parameter of the normal prior
 #' density for mean treatmen effect, first value is parameter for mean(default 0), 
 #' second is for standard deviation (default 2.81).
-#' @param tau_par A numerical vector specifying the parameter of the half normal prior
+#' @param tau_prior A numerical vector specifying the parameter of the half normal prior
 #' density for heterogenety stdev, first value is parameter for mean (default 0), 
 #' second is for standard deviation (default 1).
+#' @param tau_prior_dist A numerical value specfying type of prior distribution for 
+#' \code{tau}; supported priors are \code{HalfNormal} (default),
+#' \code{Normal}, \code{Uniform}, \code{Gamma}, \code{InvGamma},
+#' \code{LogNormal}, \code{TruncCauchy}, \code{Exp} and \code{Fixed}.
 #' @param OR_apriori A numerical value used to calculate the standard deviation of
 #' the nomral prior for treatment effect parameter. 95% prior interval of the underlying 
 #' odds ratio lies between 1/\code{OR_apriori} and OR_apriori. Default is NULL.
-#' When used, \code{theta_par} should not be specified.
+#' When used, \code{theta_prior} should not be specified.
 #' @param iter A positive integer specifying the number of iterations for 
 #' each chain (including warmup). The default is 4000.
 #' @param warmup A positive integer specifying the number of warmup (aka burnin) 
@@ -36,28 +40,28 @@
 #'                                    nc = dat.Crins2014.PTLD$cont.total, 
 #'                                    rt = dat.Crins2014.PTLD$exp.PTLD.events,
 #'                                    rc = dat.Crins2014.PTLD$cont.PTLD.events, 
-#'                                    mu_par = c(0, 10),
-#'                                    theta_par = c(0, 2.81), 
-#'                                    tau_par = c(0, 1))
+#'                                    mu_prior = c(0, 10),
+#'                                    theta_prior = c(0, 2.81), 
+#'                                    tau_prior = c(0, 1),
+#'                                    tau_prior_dist = 1)
 #' }
 #'
 #' @export
 meta_stan = function(nt, nc, rt, rc, 
-                     mu_par = c(0, 10), 
-                     theta_par = NULL, 
-                     tau_par = c(0, 1),
+                     mu_prior = c(0, 10), 
+                     theta_prior = c(0, 2.81), 
+                     tau_prior = c(0, 1),
+                     tau_prior_dist = 1,
                      OR_apriori = NULL,
                      iter = 4000,
                      warmup = 2000,
                      chains = 4) {
   call <- match.call()
   
-  theta_par[1] = 0
   if(!is.null(OR_apriori)){
-    theta_par[2] = (log(OR_apriori) - log(1 / OR_apriori)) / (2 * 1.96)
-  } else {
-    theta_par[2] = 2.81
-  }
+    theta_prior[1] = 0
+    theta_prior[2] = (log(OR_apriori) - log(1 / OR_apriori)) / (2 * 1.96)
+  } 
   
   
   ## Create a list to be used with Stan
@@ -66,9 +70,10 @@ meta_stan = function(nt, nc, rt, rc,
                   nc = nc,
                   rt = rt,
                   rc = rc,
-                  mu_par = mu_par,
-                  theta_par = theta_par,
-                  tau_par = tau_par)
+                  mu_prior = mu_prior,
+                  theta_prior = theta_prior,
+                  tau_prior = tau_prior,
+                  tau_prior_dist = 1)
   
   control <- list(adapt_delta = 0.99, stepsize = 0.01, max_treedepth = 20)
   
